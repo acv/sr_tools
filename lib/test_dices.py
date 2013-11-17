@@ -37,6 +37,30 @@ class TestDices(unittest.TestCase):
             roll = roller.roll(-5)
             self.assertLessEqual(roll.raw_hits, 1)
 
+    def test_roller_zero_dices(self):
+        roller = dices.DiceRoller(0)
+        roll = roller.roll()
+
+        self.assertFalse(roll.is_success)
+        self.assertEqual(roll.hits, 0)
+        self.assertFalse(roll.is_glitch)
+        self.assertFalse(roll.is_critical_glitch)
+
+    def test_roller_negative_dices(self):
+        roller = dices.DiceRoller(-10)
+        roll = roller.roll()
+
+        self.assertFalse(roll.is_success)
+        self.assertEqual(roll.hits, 0)
+        self.assertFalse(roll.is_glitch)
+        self.assertFalse(roll.is_critical_glitch)
+
+    def test_roll_simple(self):
+        result = [1, 2, 5, 6]
+        roll = dices.DiceRoll(result)
+
+        self.assertEqual(result, roll.roll)
+
     def test_roll_critical_glitch(self):
         roll = dices.DiceRoll([1, 1, 1, 4, 3, 2])
 

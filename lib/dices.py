@@ -10,6 +10,7 @@ class DiceRoll(object):
         self.is_success = False
         self.is_glitch = False
         self.is_critical_glitch = False
+        self.roll = roll
 
         num_dices = len(roll)
         num_hits = 0
@@ -30,7 +31,7 @@ class DiceRoll(object):
             if self.hits > limit:
                 self.hits = limit
 
-        if num_glitches >= ceil(float(num_dices) / 2.0):
+        if num_glitches >= ceil(float(num_dices) / 2.0) and len(roll) > 0:
             self.is_glitch = True
 
         if self.is_glitch and not self.is_success:
