@@ -122,7 +122,13 @@ def monte_carlo(shooter, target, columns, rolls, damage_value, accuracy, ap,
             if result.effect == 'damaged':
                 if 'Hit!' not in raw_results[bonus]:
                     raw_results[bonus]['Hit!'] = 0
+                    raw_results[bonus]['Stun!'] = 0
+                    raw_results[bonus]['Physical!'] = 0
                 raw_results[bonus]['Hit!'] += 1
+                if damage.endswith('P'):
+                    raw_results[bonus]['Physical!'] += 1
+                elif damage.endswith('S'):
+                    raw_results[bonus]['Stun!'] += 1
 
     return raw_results
 
