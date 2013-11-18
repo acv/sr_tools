@@ -27,7 +27,7 @@ class ShootingCharacter(object):
         self.firearm = firearm
 
 def shoot(shooter_char, shot_char, damage, accuracy, ap, attack_modifier = 0,
-          defense_modifier = 0, verbose = False):
+          defense_modifier = 0, verbose = False, roller = DiceRoller):
     attack_pool = shooter_char.agility + shooter_char.firearm
 
     defense_pool = shot_char.reaction + shot_char.intuition
@@ -36,7 +36,7 @@ def shoot(shooter_char, shot_char, damage, accuracy, ap, attack_modifier = 0,
         print "Attack pool: [%d]\t\tDefense pool: [%d]" % (attack_pool,
                     defense_pool)
 
-    attack_roll = DiceRoller(attack_pool, limit = accuracy)
+    attack_roll = roller(attack_pool, limit = accuracy)
     attack_result = attack_roll.roll(attack_modifier)
 
     if verbose:
@@ -48,7 +48,7 @@ def shoot(shooter_char, shot_char, damage, accuracy, ap, attack_modifier = 0,
             print "Critical Glitch!\n"
         return ShootingEffect('missed', glitch = True, critical_glitch = True)
 
-    defense_roll = DiceRoller(defense_pool)
+    defense_roll = roller(defense_pool)
     defense_result = defense_roll.roll(defense_modifier)
 
     if verbose:
@@ -79,7 +79,7 @@ def shoot(shooter_char, shot_char, damage, accuracy, ap, attack_modifier = 0,
                     str(damage))
 
     soak_pool = shot_char.body + net_armor
-    soak_roll = DiceRoller(soak_pool)
+    soak_roll = roller(soak_pool)
     soak_result = soak_roll.roll()
 
     if verbose:
