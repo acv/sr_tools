@@ -25,14 +25,17 @@ class RollSuccess(LoadedDiceRoller):
         return self.roll_only(dices_to_roll, 5)
 
 class RollFiveFourThree(LoadedDiceRoller):
+    roll_fail = 2
+    roll_success = 5
+
     def _roll_dices(self, dices_to_roll):
         roll = RollFiveFourThree.rolls.pop(0)
         result = []
         for i in xrange(dices_to_roll):
             if i < roll:
-                result.append(5)
+                result.append(RollFiveFourThree.roll_success)
             else:
-                result.append(2)
+                result.append(RollFiveFourThree.roll_fail)
         return result
 
 def get_guard():
@@ -62,18 +65,26 @@ class TestShooting(unittest.TestCase):
         self.assertEqual(runner.body, 8)
         self.assertEqual(runner.firearm, 1)
 
-    def test_shooting_effect(self):
+    def get_info(self):
         guard = get_guard()
         runner = get_runner()
         damage = DamageValue('10P')
         accuracy = 5
         ap = -2
 
+        return (guard, runner, damage, accuracy, ap)
+
+    def test_effect_crit(self):
+        (guard, runner, damage, accuracy, ap) = self.get_info()
+
         effect = shoot(guard, runner, damage, accuracy, ap, roller = RollCriticalGlitch)
         self.assertTrue(effect.glitch)
         self.assertTrue(effect.critical_glitch)
         self.assertEqual(effect.effect, 'missed')
         self.assertEqual(str(effect.damage), '0S')
+
+    def test_effect_hit(self):
+        (guard, runner, damage, accuracy, ap) = self.get_info()
 
         runner.intuition = 2
         runner.reaction = 1
@@ -83,13 +94,18 @@ class TestShooting(unittest.TestCase):
         self.assertFalse(effect.critical_glitch)
         self.assertEqual(effect.effect, 'damaged')
         self.assertEqual(str(effect.damage), '4P')
-        runner = get_runner()
+
+    def test_effect_missed(self):
+        (guard, runner, damage, accuracy, ap) = self.get_info()
 
         effect = shoot(guard, runner, damage, accuracy, ap, roller = RollFailure)
         self.assertFalse(effect.glitch)
         self.assertFalse(effect.critical_glitch)
         self.assertEqual(effect.effect, 'missed')
         self.assertEqual(str(effect.damage), '0S')
+
+    def test_effect_hit02(self):
+        (guard, runner, damage, accuracy, ap) = self.get_info()
 
         RollFiveFourThree.rolls = [5, 4, 3]
         effect = shoot(guard, runner, damage, accuracy, ap, roller = RollFiveFourThree)
@@ -98,12 +114,46 @@ class TestShooting(unittest.TestCase):
         self.assertEqual(effect.effect, 'damaged')
         self.assertEqual(str(effect.damage), '8P')
 
+    def test_effect_hit_limit(self):
+        (guard, runner, damage, accuracy, ap) = self.get_info()
+
         RollFiveFourThree.rolls = [7, 4, 3]
         effect = shoot(guard, runner, damage, accuracy, ap, roller = RollFiveFourThree)
         self.assertFalse(effect.glitch)
         self.assertFalse(effect.critical_glitch)
         self.assertEqual(effect.effect, 'damaged')
         self.assertEqual(str(effect.damage), '8P')
+
+    def test_effect_grazed(self):
+        (guard, runner, damage, accuracy, ap) = self.get_info()
+
+        RollFiveFourThree.rolls = [7, 5, 3]
+        effect = shoot(guard, runner, damage, accuracy, ap, roller = RollFiveFourThree)
+        self.assertFalse(effect.glitch)
+        self.assertFalse(effect.critical_glitch)
+        self.assertEqual(effect.effect, 'grazed')
+        self.assertEqual(str(effect.damage), '0S')
+
+    def test_effect_soaked(self):
+        (guard, runner, damage, accuracy, ap) = self.get_info()
+
+        RollFiveFourThree.rolls = [7, 4, 11]
+        effect = shoot(guard, runner, damage, accuracy, ap, roller = RollFiveFourThree)
+        self.assertFalse(effect.glitch)
+        self.assertFalse(effect.critical_glitch)
+        self.assertEqual(effect.effect, 'soaked')
+        self.assertEqual(str(effect.damage), '0S')
+
+    def test_effect_glitch(self):
+        (guard, runner, damage, accuracy, ap) = self.get_info()
+
+        RollFiveFourThree.rolls = [3, 0, 3]
+        RollFiveFourThree.roll_fail = 1
+        effect = shoot(guard, runner, damage, accuracy, ap, roller = RollFiveFourThree)
+        self.assertTrue(effect.glitch)
+        self.assertFalse(effect.critical_glitch)
+        self.assertEqual(effect.effect, 'damaged')
+        self.assertEqual(str(effect.damage), '10P')
 
 if __name__ == '__main__':
     unittest.main()

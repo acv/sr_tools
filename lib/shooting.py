@@ -43,10 +43,14 @@ def shoot(shooter_char, shot_char, damage, accuracy, ap, attack_modifier = 0,
         print "Attack roll: %s\t\t(hits: %d)" % (attack_result.roll,
                     attack_result.hits)
 
+    glitch = False
+    if attack_result.is_glitch:
+        glitch = True
+
     if attack_result.is_critical_glitch:
         if verbose:
             print "Critical Glitch!\n"
-        return ShootingEffect('missed', glitch = True, critical_glitch = True)
+        return ShootingEffect('missed', glitch = glitch, critical_glitch = True)
 
     defense_roll = roller(defense_pool)
     defense_result = defense_roll.roll(defense_modifier)
@@ -59,11 +63,11 @@ def shoot(shooter_char, shot_char, damage, accuracy, ap, attack_modifier = 0,
     if net_hits < 0 or (net_hits == 0 and attack_result.hits == 0):
         if verbose:
             print "Missed!\n"
-        return ShootingEffect('missed')
+        return ShootingEffect('missed', glitch = glitch)
     elif net_hits == 0 and attack_result.hits > 0:
         if verbose:
             print "Grazed!\n"
-        return ShootingEffect('grazed')
+        return ShootingEffect('grazed', glitch = glitch)
 
     damage_mod = DamageValue('+%d%s' % (net_hits, damage.damage_type))
     raw_damage = damage + damage_mod
@@ -94,8 +98,8 @@ def shoot(shooter_char, shot_char, damage, accuracy, ap, attack_modifier = 0,
     if net_damage.damage <= 0:
         if verbose:
             print "Soaked!\n"
-        return ShootingEffect('soaked')
+        return ShootingEffect('soaked', glitch = glitch)
     else:
         if verbose:
             print "Damaged! (%s)\n" % (str(net_damage),)
-        return ShootingEffect('damaged', damage = str(net_damage))
+        return ShootingEffect('damaged', damage = str(net_damage), glitch = glitch)
